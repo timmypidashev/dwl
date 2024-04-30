@@ -357,6 +357,7 @@ static void updatetitle(struct wl_listener *listener, void *data);
 static void urgent(struct wl_listener *listener, void *data);
 static void view(const Arg *arg);
 static void virtualkeyboard(struct wl_listener *listener, void *data);
+static void winview(const Arg *a);
 static void virtualpointer(struct wl_listener *listener, void *data);
 static Monitor *xytomon(double x, double y);
 static void xytonode(double x, double y, struct wlr_surface **psurface,
@@ -3053,6 +3054,17 @@ virtualpointer(struct wl_listener *listener, void *data)
 	wlr_cursor_attach_input_device(cursor, &pointer.base);
 	if (event->suggested_output)
 		wlr_cursor_map_input_to_output(cursor, &pointer.base, event->suggested_output);
+}
+
+void
+winview(const Arg *a) {
+	Arg b = {0};
+	Client *sel = focustop(selmon);
+	if(!sel)
+		return;
+	b.ui = sel -> tags;
+	view(&b);
+	return;
 }
 
 Monitor *
