@@ -128,7 +128,7 @@ static const enum libinput_config_tap_button_map button_map = LIBINPUT_CONFIG_TA
 #define SHCMD(cmd) { .v = (const char*[]){ "/bin/sh", "-c", cmd, NULL } }
 
 /* commands */
-static const char *termcmd[] = { "foot", NULL };
+static const char *termcmd[] = { "st", NULL };
 static const char *menucmd[] = { "bemenu-run", NULL };
 
 #include "shiftview.c"
@@ -155,7 +155,7 @@ static const Key keys[] = {
 	{ MODKEY,                    XKB_KEY_space,      setlayout,      {0} },
 	{ MODKEY, 		     XKB_KEY_apostrophe, toggledimming,  {0} },
 	{ MODKEY|WLR_MODIFIER_SHIFT, XKB_KEY_space,      togglefloating, {0} },
-	{ MODKEY|WLR_MODIFIER_SHIFT, XKB_KEY_f,          togglefullscreen, {0} },
+	{ MODKEY,                    XKB_KEY_e,          togglefullscreen, {0} },
 	{ MODKEY,                    XKB_KEY_0,          view,           {.ui = ~0} },
 	{ MODKEY,                    XKB_KEY_o,          winview,        {0}},
 	{ MODKEY|WLR_MODIFIER_SHIFT, XKB_KEY_parenright, tag,            {.ui = ~0} },
