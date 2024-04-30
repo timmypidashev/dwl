@@ -110,6 +110,7 @@ struct Client {
 	Monitor *mon;
 	struct wlr_scene_tree *scene;
 	struct wlr_scene_rect *border[4]; /* top, bottom, left, right */
+	struct wlr_scene_rect *dimmer;
 	struct wlr_scene_tree *scene_surface;
 	struct wl_list link;
 	struct wl_list flink;
@@ -138,7 +139,7 @@ struct Client {
 #endif
 	unsigned int bw;
 	uint32_t tags;
-	int isfloating, isurgent, isfullscreen, isterm, noswallow;
+	int isfloating, isurgent, isfullscreen, isterm, noswallow, neverdim;
 	uint32_t resize; /* configure serial of a pending resize */
 	pid_t pid;
 	Client *swallowing, *swallowedby;
@@ -230,6 +231,7 @@ typedef struct {
 	const char *title;
 	uint32_t tags;
 	int isfloating;
+  int neverdim;
 	int isterm;
 	int noswallow;
 	int monitor;
@@ -335,6 +337,7 @@ static void startdrag(struct wl_listener *listener, void *data);
 static void tag(const Arg *arg);
 static void tagmon(const Arg *arg);
 static void tile(Monitor *m);
+static void toggledimming(const Arg *arg);
 static void togglefloating(const Arg *arg);
 static void togglefullscreen(const Arg *arg);
 static void toggletag(const Arg *arg);
@@ -413,6 +416,7 @@ static struct wlr_output_layout *output_layout;
 static struct wlr_box sgeom;
 static struct wl_list mons;
 static Monitor *selmon;
+static int DIMOPT = 1;
 
 #ifdef XWAYLAND
 static void activatex11(struct wl_listener *listener, void *data);
@@ -473,6 +477,7 @@ applyrules(Client *c)
 		if ((!r->title || strstr(title, r->title))
 				&& (!r->id || strstr(appid, r->id))) {
 			c->isfloating = r->isfloating;
+      c->neverdim = r->neverdim;
 			c->isterm     = r->isterm;
 			c->noswallow  = r->noswallow;
 			newtags |= r->tags;
@@ -498,6 +503,8 @@ applyrules(Client *c)
 			newtags = p->tags;
 		}
 	}
+	c->geom.x = (mon->w.width - c->geom.width) / 2 + mon->m.x;
+	c->geom.y = (mon->w.height - c->geom.height) / 2 + mon->m.y;
 	setmon(c, mon, newtags);
 }
 
@@ -1295,8 +1302,10 @@ focusclient(Client *c, int lift)
 
 		/* Don't change border color if there is an exclusive focus or we are
 		 * handling a drag operation */
-		if (!exclusive_focus && !seat->drag)
+		if (!exclusive_focus && !seat->drag) {
 			client_set_border_color(c, focuscolor);
+			client_set_dimmer_state(c, 0);
+		}
 	}
 
 	/* Deactivate old client if focus is changing */
@@ -1314,7 +1323,7 @@ focusclient(Client *c, int lift)
 		 * and probably other clients */
 		} else if (old_c && !client_is_unmanaged(old_c) && (!c || !client_wants_focus(c))) {
 			client_set_border_color(old_c, bordercolor);
-
+			client_set_dimmer_state(old_c, 1);
 			client_activate_surface(old, 0);
 		}
 	}
@@ -1683,6 +1692,10 @@ mapnotify(struct wl_listener *listener, void *data)
 				c->isurgent ? urgentcolor : bordercolor);
 		c->border[i]->node.data = c;
 	}
+
+	c->dimmer = wlr_scene_rect_create(c->scene, 0, 0, unfocuseddim);
+	c->dimmer->node.data = c;
+	client_set_dimmer_state(c, 1);
 
 	/* Initialize client geometry with room for border */
 	client_set_tiled(c, WLR_EDGE_TOP | WLR_EDGE_BOTTOM | WLR_EDGE_LEFT | WLR_EDGE_RIGHT);
@@ -2125,7 +2138,7 @@ resize(Client *c, struct wlr_box geo, int interact)
 	c->geom = geo;
 	applybounds(c, bbox);
 
-	/* Update scene-graph, including borders */
+	/* Update scene-graph, including borders and dimmer*/
 	wlr_scene_node_set_position(&c->scene->node, c->geom.x, c->geom.y);
 	wlr_scene_node_set_position(&c->scene_surface->node, c->bw, c->bw);
 	wlr_scene_rect_set_size(c->border[0], c->geom.width, c->bw);
@@ -2135,6 +2148,8 @@ resize(Client *c, struct wlr_box geo, int interact)
 	wlr_scene_node_set_position(&c->border[1]->node, 0, c->geom.height - c->bw);
 	wlr_scene_node_set_position(&c->border[2]->node, 0, c->bw);
 	wlr_scene_node_set_position(&c->border[3]->node, c->geom.width - c->bw, c->bw);
+	wlr_scene_rect_set_size(c->dimmer, c->geom.width, c-> geom.height);
+	wlr_scene_node_set_position(&c->dimmer->node, 0, 0);
 
 	/* this is a no-op if size hasn't changed */
 	c->resize = client_set_size(c, c->geom.width - 2 * c->bw,
@@ -2686,6 +2701,17 @@ tile(Monitor *m)
 		}
 		i++;
 	}
+}
+
+void toggledimming(const Arg *arg)
+{
+   Client *c;
+   DIMOPT ^= 1;
+   wl_list_for_each(c, &clients, link)
+   {
+       client_set_dimmer_state(c, 1);
+   }
+   client_set_dimmer_state(focustop(selmon), 0);
 }
 
 void
