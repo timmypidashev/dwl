@@ -239,6 +239,11 @@ typedef struct {
 } Rule;
 
 typedef struct {
+	const char *variable;
+	const char *value;
+} Env;
+
+typedef struct {
 	struct wlr_scene_tree *scene;
 
 	struct wlr_session_lock_v1 *lock;
@@ -2226,6 +2231,8 @@ run(char *startup_cmd)
 	if (!socket)
 		die("startup: display_add_socket_auto");
 	setenv("WAYLAND_DISPLAY", socket, 1);
+	for (size_t i = 0; i < LENGTH(envs); i++)
+		setenv(envs[i].variable, envs[i].value, 1);
 
 	/* Start the backend. This will enumerate outputs and inputs, become the DRM
 	 * master, etc */

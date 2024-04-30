@@ -28,6 +28,11 @@ static const char *const autostart[] = {
 };
 
 
+static const Env envs[] = {
+	/* variable			value */
+	{ "XDG_CURRENT_DESKTOP",	"wlroots" },
+};
+
 static const Rule rules[] = {
 	/* app_id     title       tags mask     isfloating  isterm  noswallow  neverdim  monitor */
 	/* examples: */
