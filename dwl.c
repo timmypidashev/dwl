@@ -85,7 +85,7 @@
 #define TEXTW(mon, text)        (drwl_font_getwidth(mon->drw, text) + mon->lrpad)
 
 /* enums */
-enum { SchemeNorm, SchemeSel, SchemeUrg }; /* color schemes */
+enum { SchemeNorm, SchemeSel, SchemeUrg, SchemeBar }; /* color schemes */
 enum { CurNormal, CurPressed, CurMove, CurResize }; /* cursor */
 enum { XDGShell, LayerShell, X11 }; /* client types */
 enum { LyrBg, LyrBottom, LyrTile, LyrFloat, LyrTop, LyrFS, LyrOverlay, LyrBlock, NUM_LAYERS }; /* scene layers */
@@ -1460,7 +1460,8 @@ dirtomon(enum wlr_direction dir)
 void
 drawbar(Monitor *m)
 {
-	int x, w, tw = 0;
+	int x, y = borderpx, w, tw = 0;
+	int mh, mw;
 	int boxs = m->drw->font->height / 9;
 	int boxw = m->drw->font->height / 6 + 2;
 	uint32_t i, occ = 0, urg = 0;
@@ -1471,6 +1472,8 @@ drawbar(Monitor *m)
 	if (!m->showbar)
 		return;
 
+	mh = m->b.height - borderpx * 2;
+	mw = m->b.width - borderpx * 2;
 	stride = drwl_stride(m->b.width);
 	size = stride * m->b.height;
 
@@ -1480,11 +1483,15 @@ drawbar(Monitor *m)
 
 	drwl_prepare_drawing(m->drw, m->b.width, m->b.height, buf->data, stride);
 
+	drwl_setscheme(m->drw, colors[SchemeBar]);
+	drwl_rect(m->drw, 0, 0, m->b.width, m->b.height, 1, 1);
+	drwl_setscheme(m->drw, colors[SchemeNorm]);
+
 	/* draw status first so it can be overdrawn by tags later */
 	if (m == selmon) { /* status is only drawn on selected monitor */
 		drwl_setscheme(m->drw, colors[SchemeNorm]);
 		tw = TEXTW(m, stext) - m->lrpad + 2; /* 2px right padding */
-		drwl_text(m->drw, m->b.width - tw, 0, tw, m->b.height, 0, stext, 0);
+		drwl_text(m->drw, borderpx + mw - tw, y, tw, mh, 0, stext, 0);
 	}
 
 	wl_list_for_each(c, &clients, link) {
@@ -1494,31 +1501,31 @@ drawbar(Monitor *m)
 		if (c->isurgent)
 			urg |= c->tags;
 	}
-	x = 0;
+	x = borderpx;
 	c = focustop(m);
 	for (i = 0; i < LENGTH(tags); i++) {
 		w = TEXTW(m, tags[i]);
 		drwl_setscheme(m->drw, colors[m->tagset[m->seltags] & 1 << i ? SchemeSel : SchemeNorm]);
-		drwl_text(m->drw, x, 0, w, m->b.height, m->lrpad / 2, tags[i], urg & 1 << i);
+		drwl_text(m->drw, x, y, w, mh, m->lrpad / 2, tags[i], urg & 1 << i);
 		if (occ & 1 << i)
-			drwl_rect(m->drw, x + boxs, boxs, boxw, boxw,
+			drwl_rect(m->drw, x + boxs, y + boxs, boxw, boxw,
 				m == selmon && c && c->tags & 1 << i,
 				urg & 1 << i);
 		x += w;
 	}
 	w = TEXTW(m, m->ltsymbol);
 	drwl_setscheme(m->drw, colors[SchemeNorm]);
-	x = drwl_text(m->drw, x, 0, w, m->b.height, m->lrpad / 2, m->ltsymbol, 0);
+	x = drwl_text(m->drw, x, y, w, mh, m->lrpad / 2, m->ltsymbol, 0);
 
-	if ((w = m->b.width - tw - x) > m->b.height) {
+	if ((w = mw - tw - x + borderpx) > mh) {
 		if (c) {
 			drwl_setscheme(m->drw, colors[m == selmon ? SchemeSel : SchemeNorm]);
-			drwl_text(m->drw, x, 0, w, m->b.height, m->lrpad / 2, client_get_title(c), 0);
+			drwl_text(m->drw, x, y, w, mh, m->lrpad / 2, client_get_title(c), 0);
 			if (c && c->isfloating)
-				drwl_rect(m->drw, x + boxs, boxs, boxw, boxw, 0, 0);
+				drwl_rect(m->drw, x + boxs, y + boxs, boxw, boxw, 0, 0);
 		} else {
 			drwl_setscheme(m->drw, colors[SchemeNorm]);
-			drwl_rect(m->drw, x, 0, w, m->b.height, 1, 1);
+			drwl_rect(m->drw, x, y, w, mh, 1, 1);
 		}
 	}
 
@@ -3143,7 +3150,7 @@ updatebar(Monitor *m)
 
 	m->b.scale = m->wlr_output->scale;
 	m->lrpad = m->drw->font->height;
-	m->b.height = m->drw->font->height + 2;
+	m->b.height = m->drw->font->height + 2 + borderpx * 2;
 	m->b.real_height = (int)((float)m->b.height / m->wlr_output->scale);
 }
 

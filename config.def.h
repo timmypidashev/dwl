@@ -6,7 +6,7 @@
 /* appearance */
 static const int sloppyfocus               = 1;  /* focus follows mouse */
 static const int bypass_surface_visibility = 0;  /* 1 means idle inhibitors will disable idle tracking even if it's surface isn't visible  */
-static const unsigned int borderpx         = 1;  /* border pixel of windows */
+static const unsigned int borderpx         = 2;  /* border pixel of windows and bar */
 static const int showbar                   = 1;  /* 0 means no bar */
 static const int topbar                    = 1;  /* 0 means bottom bar */
 static const char *fonts[]                 = {"monospace:size=10"};
@@ -20,6 +20,7 @@ static uint32_t colors[][3]                = {
        [SchemeNorm] = { 0xbbbbbbff, 0x222222ff, 0x444444ff },
        [SchemeSel]  = { 0xeeeeeeff, 0x005577ff, 0x005577ff },
        [SchemeUrg]  = { 0,          0,          0x770000ff },
+       [SchemeBar]  = { 0,          0,          0x557700ff },
 };
 
 
