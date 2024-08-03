@@ -94,12 +94,9 @@ client_activate_surface(struct wlr_surface *s, int activated)
 {
 	struct wlr_xdg_toplevel *toplevel;
 #ifdef XWAYLAND
-	struct wlr_xwayland_surface *surface;
-	if ((surface = wlr_xwayland_surface_try_from_wlr_surface(s))) {
-		if (activated && surface->minimized)
-			wlr_xwayland_surface_set_minimized(surface, false);
-
-		wlr_xwayland_surface_activate(surface, activated);
+	struct wlr_xwayland_surface *xsurface;
+	if ((xsurface = wlr_xwayland_surface_try_from_wlr_surface(s))) {
+		wlr_xwayland_surface_activate(xsurface, activated);
 		return;
 	}
 #endif
@@ -132,18 +129,6 @@ client_get_appid(Client *c)
 		return c->surface.xwayland->class;
 #endif
 	return c->surface.xdg->toplevel->app_id;
-}
-
-static inline int
-client_get_pid(Client *c)
-{
-	pid_t pid;
-#ifdef XWAYLAND
-	if (client_is_x11(c))
-		return c->surface.xwayland->pid;
-#endif
-	wl_client_get_credentials(c->surface.xdg->client->client, &pid, NULL, NULL);
-	return pid;
 }
 
 static inline void
@@ -187,11 +172,11 @@ client_get_parent(Client *c)
 {
 	Client *p = NULL;
 #ifdef XWAYLAND
-    if (client_is_x11(c)) {
-        if (c->surface.xwayland->parent)
-            toplevel_from_wlr_surface(c->surface.xwayland->parent->surface, &p, NULL);
-        return p;
-    }
+	if (client_is_x11(c)) {
+		if (c->surface.xwayland->parent)
+			toplevel_from_wlr_surface(c->surface.xwayland->parent->surface, &p, NULL);
+		return p;
+	}
 #endif
 	if (c->surface.xdg->toplevel->parent)
 		toplevel_from_wlr_surface(c->surface.xdg->toplevel->parent->base->surface, &p, NULL);
@@ -202,12 +187,12 @@ static inline int
 client_has_children(Client *c)
 {
 #ifdef XWAYLAND
-    if (client_is_x11(c))
-        return !wl_list_empty(&c->surface.xwayland->children);
+	if (client_is_x11(c))
+		return !wl_list_empty(&c->surface.xwayland->children);
 #endif
-    /* surface.xdg->link is never empty because it always contains at least the
-     * surface itself. */
-    return wl_list_length(&c->surface.xdg->link) > 1;
+	/* surface.xdg->link is never empty because it always contains at least the
+	 * surface itself. */
+	return wl_list_length(&c->surface.xdg->link) > 1;
 }
 
 static inline const char *
@@ -348,12 +333,6 @@ client_set_border_color(Client *c, const float color[static 4])
 }
 
 static inline void
-client_set_dimmer_state(Client *c, const int dim)
-{
-	wlr_scene_node_set_enabled(&c->dimmer->node, DIMOPT && !c->neverdim && dim);
-}
-
-static inline void
 client_set_fullscreen(Client *c, int fullscreen)
 {
 #ifdef XWAYLAND
@@ -371,7 +350,7 @@ client_set_size(Client *c, uint32_t width, uint32_t height)
 #ifdef XWAYLAND
 	if (client_is_x11(c)) {
 		wlr_xwayland_surface_configure(c->surface.xwayland,
-				c->geom.x, c->geom.y, width, height);
+				c->geom.x + c->bw, c->geom.y + c->bw, width, height);
 		return 0;
 	}
 #endif
@@ -412,8 +391,8 @@ client_wants_focus(Client *c)
 {
 #ifdef XWAYLAND
 	return client_is_unmanaged(c)
-		&& wlr_xwayland_or_surface_wants_focus(c->surface.xwayland)
-		&& wlr_xwayland_icccm_input_model(c->surface.xwayland) != WLR_ICCCM_INPUT_MODEL_NONE;
+		&& wlr_xwayland_surface_override_redirect_wants_focus(c->surface.xwayland)
+		&& wlr_xwayland_surface_icccm_input_model(c->surface.xwayland) != WLR_ICCCM_INPUT_MODEL_NONE;
 #endif
 	return 0;
 }
