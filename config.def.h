@@ -7,12 +7,12 @@
 static const int sloppyfocus               = 1;  /* focus follows mouse */
 static const int bypass_surface_visibility = 0;  /* 1 means idle inhibitors will disable idle tracking even if it's surface isn't visible  */
 static const unsigned int borderpx         = 0;  /* border pixel of windows and bar */
-static const int user_bh                   = 0; /* 0 means that dwl will calculate barheight */
-static const int vertpad                   = 0; /* vertical padding of bar */
-static const int sidepad                   = 0; /* horizontal padding of bar */
+static const int user_bh                   = 0;  /* 0 means that dwl will calculate barheight */
+static const int vertpad                   = 10;  /* vertical padding of bar */
+static const int sidepad                   = 0;  /* horizontal padding of bar */
 static const int showbar                   = 1;  /* 0 means no bar */
 static const int topbar                    = 1;  /* 0 means bottom bar */
-static const char *fonts[]                 = {"monospace:size=10"};
+static const char *fonts[]                 = {"Comic Code:size=18"};
 static const float rootcolor[]             = COLOR(0x000000ff);
 
 /* This conforms to the xdg-protocol. Set the alpha to zero to restore the old behavior */
@@ -21,7 +21,7 @@ static const char *cursor_theme            = NULL;
 static const char cursor_size[]            = "24"; /* Make sure it's a valid integer, otherwise things will break */
 static uint32_t colors[][3]                = {
        /*               fg          bg          border    */
-       [SchemeNorm] = { 0xbbbbbbff, 0x222222ff, 0x444444ff },
+       [SchemeNorm] = { 0xbbbbbbff, 0x000000ff, 0x444444ff },
        [SchemeSel]  = { 0xeeeeeeff, 0x005577ff, 0x005577ff },
        [SchemeUrg]  = { 0,          0,          0x770000ff },
        [SchemeBar]  = { 0,          0,          0x557700ff },
@@ -148,7 +148,7 @@ static const enum libinput_config_tap_button_map button_map = LIBINPUT_CONFIG_TA
 #define SHCMD(cmd) { .v = (const char*[]){ "/bin/sh", "-c", cmd, NULL } }
 
 /* commands */
-static const char *termcmd[] = { "foot", NULL };
+static const char *termcmd[] = { "st", NULL };
 static const char *menucmd[] = { "dmenu_run", NULL };
 
 #include "shiftview.c"
