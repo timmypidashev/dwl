@@ -21,10 +21,10 @@ static const char *cursor_theme            = NULL;
 static const char cursor_size[]            = "24"; /* Make sure it's a valid integer, otherwise things will break */
 static uint32_t colors[][3]                = {
        /*               fg          bg          border    */
-       [SchemeNorm] = { 0xbbbbbbff, 0x000000ff, 0x444444ff },
-       [SchemeSel]  = { 0xeeeeeeff, 0x000000ff, 0x000000ff },
-       [SchemeUrg]  = { 0xeeeeeeff, 0,          0x770000ff },
-       [SchemeBar]  = { 0,          0,          0x557700ff },
+       [SchemeNorm] = { 0xebdbb2ff, 0x000000ff, 0x000000ff },
+       [SchemeSel]  = { 0xb8bb26ff, 0x000000ff, 0x000000ff },
+       [SchemeUrg]  = { 0x000000ff, 0x000000ff, 0x000000ff },
+       [SchemeBar]  = { 0x000000ff, 0x000000ff, 0x000000ff },
 };
 
 static const unsigned int swipe_min_threshold = 0;
@@ -53,8 +53,8 @@ static const Rule rules[] = {
 	/* app_id             title       tags mask     isfloating  isterm  noswallow  monitor */
 	/* examples: */
 	{ "Gimp_EXAMPLE",     NULL,       0,            1,          0,      0,         -1 }, /* Start on currently visible tags floating, not tiled */
-	{ "firefox_EXAMPLE",  NULL,       1 << 8,       0,          0,      0,         -1 }, /* Start on ONLY tag "9" */
-	{ "foot",             NULL,       0,            0,          1,      1,         -1 }, /* make foot swallow clients that are not foot */
+	{ "discord",          NULL,       1 << 8,       0,          0,      0,         -1 }, /* Start on ONLY tag "9" */
+	{ "st",               NULL,       0,            0,          1,      1,         -1 }, /* make st swallow clients that are not st */
 };
 
 /* layout(s) */
