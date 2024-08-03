@@ -8,6 +8,8 @@ static const int sloppyfocus               = 1;  /* focus follows mouse */
 static const int bypass_surface_visibility = 0;  /* 1 means idle inhibitors will disable idle tracking even if it's surface isn't visible  */
 static const unsigned int borderpx         = 2;  /* border pixel of windows and bar */
 static const int user_bh                   = 30; /* o means that dwl will calculate barheight */
+static const int vertpad                   = 10; /* vertical padding of bar */
+static const int sidepad                   = 10; /* horizontal padding of bar */
 static const int showbar                   = 1;  /* 0 means no bar */
 static const int topbar                    = 1;  /* 0 means bottom bar */
 static const char *fonts[]                 = {"monospace:size=10"};
