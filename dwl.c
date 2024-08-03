@@ -522,6 +522,10 @@ applyrules(Client *c)
 			}
 		}
 	}
+	if (mon) {
+		c->geom.x = (mon->w.width - c->geom.width) / 2 + mon->m.x;
+		c->geom.y = (mon->w.height - c->geom.height) / 2 + mon->m.y;
+	}
 	setmon(c, mon, newtags);
 }
 
@@ -2078,6 +2082,10 @@ mapnotify(struct wl_listener *listener, void *data)
 	 * try to apply rules for them */
 	if ((p = client_get_parent(c))) {
 		c->isfloating = 1;
+		if (p->mon) {
+			c->geom.x = (p->mon->w.width - c->geom.width) / 2 + p->mon->m.x;
+			c->geom.y = (p->mon->w.height - c->geom.height) / 2 + p->mon->m.y;
+		}
 		setmon(c, p->mon, p->tags);
 	} else {
 		applyrules(c);
