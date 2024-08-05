@@ -144,6 +144,14 @@ static const char *menucmd[] = { "wmenu-run", NULL };
 
 #include "shiftview.c"
 
+#define ADDPASSRULE(S, M, K) {.appid = S, .len = LENGTH(S), .key = K}
+static const PassKeypressRule pass_rules[] = {
+	ADDPASSRULE("com.obsproject.Studio", MODKEY, XKB_KEY_Home),
+	ADDPASSRULE("com.obsproject.Studio", MODKEY, XKB_KEY_End),
+	ADDPASSRULE("com.obsproject.Studio", MODKEY, XKB_KEY_F12),
+	ADDPASSRULE("discord", 0, XKB_KEY_n),
+};
+
 static const Key keys[] = {
 	/* Note that Shift changes certain key codes: c -> C, 2 -> at, etc. */
 	/* modifier                  key                 function        argument */
