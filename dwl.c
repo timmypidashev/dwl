@@ -90,6 +90,7 @@ enum { LyrBg, LyrBottom, LyrTile, LyrFloat, LyrTop, LyrFS, LyrOverlay, LyrBlock,
 enum { NetWMWindowTypeDialog, NetWMWindowTypeSplash, NetWMWindowTypeToolbar,
 	NetWMWindowTypeUtility, NetLast }; /* EWMH atoms */
 #endif
+enum { SWIPE_LEFT, SWIPE_RIGHT, SWIPE_DOWN, SWIPE_UP };
 
 typedef union {
 	int i;
@@ -104,6 +105,14 @@ typedef struct {
 	void (*func)(const Arg *);
 	const Arg arg;
 } Button;
+
+typedef struct {
+	unsigned int mod;
+	unsigned int motion;
+	unsigned int fingers_count;
+	void (*func)(const Arg *);
+	const Arg arg;
+} Gesture;
 
 typedef struct Pertag Pertag;
 typedef struct Monitor Monitor;
@@ -274,6 +283,7 @@ static void arrangelayers(Monitor *m);
 static void autostartexec(void);
 static void axisnotify(struct wl_listener *listener, void *data);
 static void buttonpress(struct wl_listener *listener, void *data);
+static int ongesture(struct wlr_pointer_swipe_end_event *event);
 static void swipe_begin(struct wl_listener *listener, void *data);
 static void swipe_update(struct wl_listener *listener, void *data);
 static void swipe_end(struct wl_listener *listener, void *data);
@@ -464,6 +474,10 @@ static Monitor *selmon;
 static struct zdwl_ipc_manager_v2_interface dwl_manager_implementation = {.release = dwl_ipc_manager_release, .get_output = dwl_ipc_manager_get_output};
 static struct zdwl_ipc_output_v2_interface dwl_output_implementation = {.release = dwl_ipc_output_release, .set_tags = dwl_ipc_output_set_tags, .set_layout = dwl_ipc_output_set_layout, .set_client_tags = dwl_ipc_output_set_client_tags};
 
+static uint32_t swipe_fingers = 0;
+static double swipe_dx = 0;
+static double swipe_dy = 0;
+
 #ifdef XWAYLAND
 static void activatex11(struct wl_listener *listener, void *data);
 static void associatex11(struct wl_listener *listener, void *data);
@@ -494,6 +508,8 @@ struct Pertag {
 
 static pid_t *autostart_pids;
 static size_t autostart_len;
+
+static const unsigned int abzsquare = swipe_min_threshold * swipe_min_threshold;
 
 /* function implementations */
 void
@@ -779,6 +795,11 @@ swipe_begin(struct wl_listener *listener, void *data)
 {
 	struct wlr_pointer_swipe_begin_event *event = data;
 
+	swipe_fingers = event->fingers;
+	// Reset swipe distance at the beginning of a swipe
+	swipe_dx = 0;
+	swipe_dy = 0;
+
 	// Forward swipe begin event to client
 	wlr_pointer_gestures_v1_send_swipe_begin(
 		pointer_gestures, 
@@ -793,6 +814,11 @@ swipe_update(struct wl_listener *listener, void *data)
 {
 	struct wlr_pointer_swipe_update_event *event = data;
 
+	swipe_fingers = event->fingers;
+	// Accumulate swipe distance
+	swipe_dx += event->dx;
+	swipe_dy += event->dy;
+
 	// Forward swipe update event to client
 	wlr_pointer_gestures_v1_send_swipe_update(
 		pointer_gestures, 
@@ -803,10 +829,52 @@ swipe_update(struct wl_listener *listener, void *data)
 	);
 }
 
+int
+ongesture(struct wlr_pointer_swipe_end_event *event)
+{
+	struct wlr_keyboard *keyboard;
+	uint32_t mods;
+	const Gesture *g;
+	unsigned int motion;
+	unsigned int adx = (int)round(fabs(swipe_dx));
+	unsigned int ady = (int)round(fabs(swipe_dy));
+	int handled = 0;
+
+	if (event->cancelled) {
+		return handled;
+	}
+
+	// Require absolute distance movement beyond a small thresh-hold
+	if (adx * adx + ady * ady < abzsquare) {
+		return handled;
+	}
+
+	if (adx > ady) {
+		motion = swipe_dx < 0 ? SWIPE_LEFT : SWIPE_RIGHT;
+	} else {
+		motion = swipe_dy < 0 ? SWIPE_UP : SWIPE_DOWN;
+	}
+
+	keyboard = wlr_seat_get_keyboard(seat);
+	mods = keyboard ? wlr_keyboard_get_modifiers(keyboard) : 0;
+	for (g = gestures; g < END(gestures); g++) {
+		if (CLEANMASK(mods) == CLEANMASK(g->mod) &&
+			 swipe_fingers == g->fingers_count &&
+			 motion == g->motion && g->func) {
+			g->func(&g->arg);
+			handled = 1;
+		}
+	}
+	return handled;
+}
+
 void
 swipe_end(struct wl_listener *listener, void *data)
 {
 	struct wlr_pointer_swipe_end_event *event = data;
+
+	// TODO: should we stop here if the event has been handled?
+	ongesture(event);
 
 	// Forward swipe end event to client
 	wlr_pointer_gestures_v1_send_swipe_end(
