@@ -1016,7 +1016,8 @@ createmon(struct wl_listener *listener, void *data)
 	const MonitorRule *r;
 	size_t i;
 	struct wlr_output_state state;
-	Monitor *m;
+	Monitor *om, *m;
+	int max_x = 0, max_x_y = 0, width, height;
 
 	if (!wlr_output_init_render(wlr_output, alloc, drw))
 		return;
@@ -1062,6 +1063,14 @@ createmon(struct wl_listener *listener, void *data)
 	wlr_output_commit_state(wlr_output, &state);
 	wlr_output_state_finish(&state);
 
+	wl_list_for_each(om, &mons, link) {
+		wlr_output_effective_resolution(om->wlr_output, &width, &height);
+		if (om->m.x + width > max_x) {
+			max_x = om->m.x + width;
+			max_x_y = om->m.y;
+		}
+	}
+
 	wl_list_insert(&mons, &m->link);
 	printstatus();
 
@@ -1097,7 +1106,7 @@ createmon(struct wl_listener *listener, void *data)
 	 */
 	m->scene_output = wlr_scene_output_create(scene, wlr_output);
 	if (m->m.x == -1 && m->m.y == -1)
-		wlr_output_layout_add_auto(output_layout, wlr_output);
+		wlr_output_layout_add(output_layout, wlr_output, max_x, max_x_y);
 	else
 		wlr_output_layout_add(output_layout, wlr_output, m->m.x, m->m.y);
 }
