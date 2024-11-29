@@ -1,24 +1,13 @@
 # Changelog
 
-* [Unreleased](#unreleased)
 * [0.7](#0.7)
 * [0.6](#0.6)
 * [0.5](#0.5)
 
 
-## Unreleased
-### Added
-### Changed
-### Deprecated
-### Removed
-### Fixed
-### Security
-### Contributors
-
-
 ## 0.7
 
-This version is just 0.6 with wlroots 0.18 compatibility.
+See also [0.6](#0.6) release notes. 0.7 builds against wlroots 0.18.x.
 
 ### Added
 
@@ -29,9 +18,15 @@ This version is just 0.6 with wlroots 0.18 compatibility.
 [601]: https://codeberg.org/dwl/dwl/issues/601
 
 
+### Fixed
+
+* Crash when re-mapping unmapped clients.
+
+
 ### Contributors
 
 Guido Cella
+Lennart Jablonka
 
 
 ## 0.6

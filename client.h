@@ -94,12 +94,9 @@ client_activate_surface(struct wlr_surface *s, int activated)
 {
 	struct wlr_xdg_toplevel *toplevel;
 #ifdef XWAYLAND
-	struct wlr_xwayland_surface *surface;
-	if ((surface = wlr_xwayland_surface_try_from_wlr_surface(s))) {
-		if (activated && surface->minimized)
-			wlr_xwayland_surface_set_minimized(surface, false);
-
-		wlr_xwayland_surface_activate(surface, activated);
+	struct wlr_xwayland_surface *xsurface;
+	if ((xsurface = wlr_xwayland_surface_try_from_wlr_surface(s))) {
+		wlr_xwayland_surface_activate(xsurface, activated);
 		return;
 	}
 #endif
@@ -132,18 +129,6 @@ client_get_appid(Client *c)
 		return c->surface.xwayland->class;
 #endif
 	return c->surface.xdg->toplevel->app_id;
-}
-
-static inline int
-client_get_pid(Client *c)
-{
-	pid_t pid;
-#ifdef XWAYLAND
-	if (client_is_x11(c))
-		return c->surface.xwayland->pid;
-#endif
-	wl_client_get_credentials(c->surface.xdg->client->client, &pid, NULL, NULL);
-	return pid;
 }
 
 static inline void
@@ -406,8 +391,8 @@ client_wants_focus(Client *c)
 {
 #ifdef XWAYLAND
 	return client_is_unmanaged(c)
-		&& wlr_xwayland_surface_override_redirect_wants_focus(c->surface.xwayland)
-		&& wlr_xwayland_surface_icccm_input_model(c->surface.xwayland) != WLR_ICCCM_INPUT_MODEL_NONE;
+		&& wlr_xwayland_or_surface_wants_focus(c->surface.xwayland)
+		&& wlr_xwayland_icccm_input_model(c->surface.xwayland) != WLR_ICCCM_INPUT_MODEL_NONE;
 #endif
 	return 0;
 }
