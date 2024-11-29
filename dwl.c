@@ -301,6 +301,7 @@ static void checkidleinhibitor(struct wlr_surface *exclude);
 static void cleanup(void);
 static void cleanupmon(struct wl_listener *listener, void *data);
 static void closemon(Monitor *m);
+static void col(Monitor *m);
 static void commitlayersurfacenotify(struct wl_listener *listener, void *data);
 static void commitnotify(struct wl_listener *listener, void *data);
 static void commitpopup(struct wl_listener *listener, void *data);
@@ -561,7 +562,9 @@ applyrules(Client *c)
 void
 arrange(Monitor *m)
 {
-	Client *c;
+	LayerSurface *l;
+	Client *c, *sel = focustop(m);
+	int i;
 
 	if (!m->wlr_output->enabled)
 		return;
@@ -590,6 +593,26 @@ arrange(Monitor *m)
 						: (m->lt[m->sellt]->arrange && c->isfloating)
 								? layers[LyrFloat]
 								: c->scene->node.parent);
+	}
+
+	if (sel && sel->isfullscreen && VISIBLEON(sel, m)) {
+		for (i = 2; i > ZWLR_LAYER_SHELL_V1_LAYER_BACKGROUND; i--) {
+			wl_list_for_each(l, &sel->mon->layers[i], link)
+				wlr_scene_node_set_enabled(&l->scene->node, 0);
+		}
+
+		wl_list_for_each(c, &clients, link) {
+			if (c->mon != m)
+				continue;
+			wlr_scene_node_set_enabled(&c->scene->node, (sel->isfullscreen && c == sel)
+					|| !sel->isfullscreen);
+		}
+	}
+	if (!sel || (!sel->isfullscreen && VISIBLEON(sel, m))) {
+		for (i = 2; i > ZWLR_LAYER_SHELL_V1_LAYER_BACKGROUND; i--) {
+			wl_list_for_each(l, &m->layers[i], link)
+				wlr_scene_node_set_enabled(&l->scene->node, 1);
+		}
 	}
 
 	if (m->lt[m->sellt]->arrange)
@@ -976,6 +999,33 @@ closemon(Monitor *m)
 	}
 	focusclient(focustop(selmon), 1);
 	drawbars();
+}
+
+void
+col(Monitor *m)
+{
+	Client *c;
+	unsigned int n = 0, i = 0;
+
+	wl_list_for_each(c, &clients, link)
+		if (VISIBLEON(c, m) && !c->isfloating && !c->isfullscreen)
+			n++;
+
+	wl_list_for_each(c, &clients, link) {
+		if (!VISIBLEON(c, m) || c->isfloating || c->isfullscreen)
+			continue;
+		resize(
+			c,
+			(struct wlr_box){
+				.x = m->w.x + i * m->w.width / n,
+				.y = m->w.y,
+				.width = m->w.width / n,
+				.height = m->w.height
+			},
+			0
+		);
+		i++;
+	}
 }
 
 void
@@ -3096,8 +3146,12 @@ setup(void)
 	 * Xcursor themes to source cursor images from and makes sure that cursor
 	 * images are available at all scale factors on the screen (necessary for
 	 * HiDPI support). Scaled cursors will be loaded with each output. */
-	cursor_mgr = wlr_xcursor_manager_create(NULL, 24);
-	setenv("XCURSOR_SIZE", "24", 1);
+	cursor_mgr = wlr_xcursor_manager_create(cursor_theme, atoi(cursor_size));
+	setenv("XCURSOR_SIZE", cursor_size, 1);
+	if (cursor_theme)
+		setenv("XCURSOR_THEME", cursor_theme, 1);
+	else
+		unsetenv("XCURSOR_THEME");
 
 	/*
 	 * wlr_cursor *only* displays an image on screen. It does not move around
