@@ -30,6 +30,12 @@ static char *tags[] = { "1", "2", "3", "4", "5", "6", "7", "8", "9" };
 /* logging */
 static int log_level = WLR_ERROR;
 
+/* Environment */
+static const Env envs[] = {
+	/* variable			value */
+	{ "XDG_CURRENT_DESKTOP",	"wlroots" },
+};
+
 /* Autostart */
 static const char *const autostart[] = {
         "wbg", "/path/to/your/image", NULL,
