@@ -1,4 +1,4 @@
-From 611144be3f78e66c7fbb7b3e84801a661986e424 Mon Sep 17 00:00:00 2001
+From 78e5c4b42cf125be70814fd65a09cbcf0a18aa7e Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Leonardo=20Hern=C3=A1ndez=20Hern=C3=A1ndez?=
  <leohdz172@proton.me>
 Date: Sun, 10 Apr 2022 22:38:53 -0500
@@ -14,7 +14,7 @@ Signed-off-by: Leonardo Hernández Hernández <leohdz172@proton.me>
  2 files changed, 24 insertions(+), 2 deletions(-)
 
 diff --git a/config.def.h b/config.def.h
-index a784eb4f..50b3cae4 100644
+index 22d2171d..1d5a4c84 100644
 --- a/config.def.h
 +++ b/config.def.h
 @@ -12,7 +12,7 @@ static const float bordercolor[]           = COLOR(0x444444ff);
@@ -27,10 +27,10 @@ index a784eb4f..50b3cae4 100644
  /* tagging - TAGCOUNT must be no greater than 31 */
  #define TAGCOUNT (9)
 diff --git a/dwl.c b/dwl.c
-index 6f041a0d..156a156e 100644
+index a2711f67..56356f29 100644
 --- a/dwl.c
 +++ b/dwl.c
-@@ -478,7 +478,9 @@ applyrules(Client *c)
+@@ -484,7 +484,9 @@ applyrules(Client *c)
  void
  arrange(Monitor *m)
  {
@@ -41,7 +41,7 @@ index 6f041a0d..156a156e 100644
  
  	if (!m->wlr_output->enabled)
  		return;
-@@ -509,6 +511,26 @@ arrange(Monitor *m)
+@@ -515,6 +517,26 @@ arrange(Monitor *m)
  								: c->scene->node.parent);
  	}
  
@@ -69,6 +69,5 @@ index 6f041a0d..156a156e 100644
  		m->lt[m->sellt]->arrange(m);
  	motionnotify(0, NULL, 0, 0, 0, 0);
 -- 
-2.45.2
-
+2.46.0
 

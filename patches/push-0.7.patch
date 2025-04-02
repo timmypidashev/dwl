@@ -1,4 +1,4 @@
-From 74ba3dcaa28fd7eb1fca48851d640ec322093de2 Mon Sep 17 00:00:00 2001
+From 01290daca2b01131c5c022389afd0b593b4707eb Mon Sep 17 00:00:00 2001
 From: "Devin J. Pohly" <djpohly@gmail.com>
 Date: Thu, 4 Mar 2021 00:45:50 -0600
 Subject: [PATCH] port dwm "push" patch to dwl
@@ -8,33 +8,32 @@ Content-Transfer-Encoding: 8bit
 
 Signed-off-by: Leonardo Hernández Hernández <leohdz172@proton.me>
 ---
- Makefile |  3 +--
+ Makefile |  2 +-
  dwl.c    |  2 ++
  push.c   | 63 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++
  push.h   |  4 ++++
- 4 files changed, 70 insertions(+), 2 deletions(-)
+ 4 files changed, 70 insertions(+), 1 deletion(-)
  create mode 100644 push.c
  create mode 100644 push.h
 
 diff --git a/Makefile b/Makefile
-index e3e64262..447191e8 100644
+index 3358bae9..87bf3160 100644
 --- a/Makefile
 +++ b/Makefile
-@@ -16,8 +16,7 @@ LDLIBS    = `$(PKG_CONFIG) --libs $(PKGS)` $(LIBS)
+@@ -19,7 +19,7 @@ LDLIBS    = `$(PKG_CONFIG) --libs $(PKGS)` -lm $(LIBS)
  all: dwl
  dwl: dwl.o util.o
  	$(CC) dwl.o util.o $(DWLCFLAGS) $(LDFLAGS) $(LDLIBS) -o $@
--dwl.o: dwl.c client.h config.h config.mk cursor-shape-v1-protocol.h pointer-constraints-unstable-v1-protocol.h wlr-layer-shell-unstable-v1-protocol.h xdg-shell-protocol.h
--util.o: util.c util.h
-+dwl.o: dwl.c push.h client.h config.h config.mk cursor-shape-v1-protocol.h pointer-constraints-unstable-v1-protocol.h wlr-layer-shell-unstable-v1-protocol.h xdg-shell-protocol.h
- 
- # wayland-scanner is a tool which generates C headers and rigging for Wayland
- # protocols, which are specified in XML. wlroots requires you to rig these up
+-dwl.o: dwl.c client.h config.h config.mk cursor-shape-v1-protocol.h \
++dwl.o: dwl.c client.h config.h config.mk push.h cursor-shape-v1-protocol.h \
+ 	pointer-constraints-unstable-v1-protocol.h wlr-layer-shell-unstable-v1-protocol.h \
+ 	wlr-output-power-management-unstable-v1-protocol.h xdg-shell-protocol.h
+ util.o: util.c util.h
 diff --git a/dwl.c b/dwl.c
-index 6f041a0d..60b65794 100644
+index a2711f67..c3d78aa3 100644
 --- a/dwl.c
 +++ b/dwl.c
-@@ -421,7 +421,9 @@ static xcb_atom_t netatom[NetLast];
+@@ -427,7 +427,9 @@ static xcb_atom_t netatom[NetLast];
  #endif
  
  /* configuration, allows nested code to access above variables */
@@ -124,6 +123,5 @@ index 00000000..59c0f80e
 +static void pushdown(const Arg *arg);
 +static void pushup(const Arg *arg);
 -- 
-2.45.2
-
+2.46.0
 
