@@ -34,7 +34,7 @@ static const Env envs[] = {
 
 /* Autostart */
 static const char *const autostart[] = {
-        "wbg", "/path/to/your/image", NULL,
+        "sh", "slstatus", "-s", "|", "dwlb", "-status-stdin" "all",
         NULL /* terminate */
 };
 
@@ -50,9 +50,9 @@ static const Rule rules[] = {
 /* layout(s) */
 static const Layout layouts[] = {
 	/* symbol     arrange function */
-	{ "[]=",      tile },
-	{ "><>",      NULL },    /* no layout function means floating behavior */
-	{ "[M]",      monocle },
+	{ "T",      tile },
+	{ "F",      NULL },    /* no layout function means floating behavior */
+	{ "M",      monocle },
 };
 
 /* monitors */
@@ -138,8 +138,8 @@ static const enum libinput_config_tap_button_map button_map = LIBINPUT_CONFIG_TA
 #define SHCMD(cmd) { .v = (const char*[]){ "/bin/sh", "-c", cmd, NULL } }
 
 /* commands */
-static const char *termcmd[] = { "foot", NULL };
-static const char *menucmd[] = { "wmenu-run", NULL };
+static const char *termcmd[] = { "st", NULL };
+static const char *menucmd[] = { "dmenu_run", NULL };
 
 #include "shiftview.c"
 
