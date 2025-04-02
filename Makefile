@@ -7,14 +7,14 @@ include config.mk
 DWLCPPFLAGS = -I. -DWLR_USE_UNSTABLE -D_POSIX_C_SOURCE=200809L \
 	-DVERSION=\"$(VERSION)\" $(XWAYLAND)
 DWLDEVCFLAGS = -g -pedantic -Wall -Wextra -Wdeclaration-after-statement \
-	-Wno-unused-parameter -Wshadow -Wunused-macros -Werror=strict-prototypes \
+	-Wno-unused-parameter -Wshadow -Wunused-macros \
 	-Werror=implicit -Werror=return-type -Werror=incompatible-pointer-types \
 	-Wfloat-conversion
 
 # CFLAGS / LDFLAGS
-PKGS      = wlroots-0.18 wayland-server xkbcommon libinput pixman-1 fcft $(XLIBS)
-DWLCFLAGS = `$(PKG_CONFIG) --cflags $(PKGS)` $(DWLCPPFLAGS) $(DWLDEVCFLAGS) $(CFLAGS)
-LDLIBS    = `$(PKG_CONFIG) --libs $(PKGS)` -lm $(LIBS)
+PKGS      = wlroots-0.18 wayland-server xkbcommon libinput pixman-1 fcft $(XLIBS) gtk4 gtk4-layer-shell-0
+DWLCFLAGS = `$(PKG_CONFIG) --cflags $(PKGS)` $(DWLCPPFLAGS) $(DWLDEVCFLAGS) $(CFLAGS) -Iinclude
+LDLIBS    = `$(PKG_CONFIG) --libs $(PKGS)` -lm $(LIBS) -Llib -lstatusnotifier-systray-gtk4
 
 all: dwl
 dwl: dwl.o util.o
